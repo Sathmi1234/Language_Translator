@@ -111,6 +111,9 @@ Open `index.html` in your web browser
 
 The application supports all languages that Google Translate supports. Common language codes include:
 
+- `en` - English
+- `si` - Sinhala
+- `ta` - Tamil
 - `es` - Spanish
 - `fr` - French
 - `de` - German
