@@ -25,8 +25,7 @@ Language Translator is a full-stack application built with **FastAPI** (backend)
 ### Backend
 - **FastAPI** - High-performance Python web framework
 - **Pydantic** - Data validation using Python type hints
-- **deep_translator** - Google Translate integration
-- **langdetect** - Source language detection
+- **deep_translator** - Google Translate integration (automatic source detection via `source="auto"`)
 - **CORS Middleware** - Cross-origin resource sharing support
 
 ## Project Structure
@@ -59,9 +58,9 @@ Language_Translator/
    ```
 
 3. **Install dependencies**
-   ```bash
-   pip install fastapi uvicorn deep_translator langdetect python-multipart
-   ```
+  ```bash
+  pip install fastapi uvicorn deep_translator python-multipart
+  ```
 
 ## Running the Application
 
@@ -91,7 +90,7 @@ Open `index.html` in your web browser
 
 ### 2. Translation Endpoint
 - **URL**: `POST /translate`
-- **Description**: Translates text to target language with automatic source language detection
+- **Description**: Translates text to the target language. Source language is detected automatically by the translator.
 - **Request Body**:
   ```json
   {
@@ -99,11 +98,12 @@ Open `index.html` in your web browser
     "target_language": "es"
   }
   ```
-- **Response**:
+- **Response**: The backend returns a structured translation object containing the source and target language codes and the translated text.
   ```json
   {
-    "bot_message": "I translated it for you 😊",
-    "translation": "Hola, ¿cómo estás?"
+    "source_language": "auto",
+    "target_language": "es",
+    "translated_text": "Hola, ¿cómo estás?"
   }
   ```
 
@@ -137,7 +137,7 @@ The application supports all languages that Google Translate supports. Common la
 ## Features in Detail
 
 ### Automatic Language Detection
-The translator automatically detects the source language of your input using the `langdetect` library, so you don't need to manually specify it.
+The translator uses `deep_translator`'s `GoogleTranslator` with `source="auto"` to let Google detect the source language automatically. The `translate_text()` function returns a structured dictionary including `source_language`, `target_language`, and `translated_text`.
 
 ### Interactive Chat Interface
 - Messages from you appear on the right with a purple gradient background
@@ -162,10 +162,9 @@ The interface adapts to different screen sizes, making it usable on:
 - Manages HTTP requests and responses
 
 **translator.py**: Translation logic
-- `translate_text()` function handles translation
-- Uses GoogleTranslator for actual translation
-- Detects source language automatically
-- Returns structured translation data
+- `translate_text(text, target_lang)` function handles translation
+- Uses `GoogleTranslator` from `deep_translator` with `source="auto"` for automatic detection
+- Returns a structured dictionary: `{ "source_language": ..., "target_language": ..., "translated_text": ... }`
 
 **index.html**: Frontend interface
 - Complete HTML, CSS, and JavaScript in one file
