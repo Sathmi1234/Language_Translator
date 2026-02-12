@@ -309,5 +309,123 @@
         </div>
     </div>
 
+    <script>
+        const API_URL = 'http://localhost:8000'; // Change this to your backend URL
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const targetLanguage = document.getElementById('targetLanguage');
+
+        // Remove welcome message on first interaction
+        let firstMessage = true;
+
+        function addMessage(text, isUser, translation = null, sourceLanguage = null, error = null) {
+            if (firstMessage) {
+                chatContainer.innerHTML = '';
+                firstMessage = false;
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (isUser) {
+                contentDiv.textContent = text;
+            } else {
+                contentDiv.innerHTML = text;
+                
+                if (translation) {
+                    const translationBox = document.createElement('div');
+                    translationBox.className = 'translation-box';
+                    
+                    if (sourceLanguage) {
+                        const badge = document.createElement('span');
+                        badge.className = 'language-badge';
+                        badge.textContent = sourceLanguage;
+                        translationBox.appendChild(badge);
+                        translationBox.appendChild(document.createElement('br'));
+                    }
+                    
+                    translationBox.appendChild(document.createTextNode(translation));
+                    contentDiv.appendChild(translationBox);
+                }
+
+                if (error) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = error;
+                    contentDiv.appendChild(errorDiv);
+                }
+            }
+            
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            const targetLang = targetLanguage.value;
+            
+            // Add user message
+            addMessage(text, true);
+            messageInput.value = '';
+            sendButton.disabled = true;
+            sendButton.textContent = 'Translating...';
+
+            try {
+                const response = await fetch(`${API_URL}/translate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        target_language: targetLang
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    addMessage('❌ Oops! Something went wrong', false, null, null, data.error);
+                } else {
+                    addMessage(
+                        data.bot_message || 'Here\'s your translation:',
+                        false,
+                        data.translation,
+                        data.source_language ? data.source_language.toUpperCase() : null
+                    );
+                }
+            } catch (error) {
+                addMessage(
+                    '❌ Connection Error',
+                    false,
+                    null,
+                    null,
+                    'Could not connect to the translation service. Make sure the backend is running on ' + API_URL
+                );
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+                messageInput.focus();
+            }
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Focus on input when page loads
+        messageInput.focus();
+    </script>
 </body>
 </html>
